@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "jira-plugin"
+rootProject.name = "jira-bitbucket-plugin"
