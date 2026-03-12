@@ -23,6 +23,7 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
 
         tabs.addTab("Jira Tickets", createJiraPanel())
         tabs.addTab("My Pull Requests", createPRPanel())
+        tabs.addTab("PRs To Review", createReviewPRPanel())
 
         val content = ContentFactory.getInstance()
             .createContent(tabs, "", false)
@@ -107,7 +108,15 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
 
         val refreshButton = JButton("Load My PRs")
 
-        val columns = arrayOf("ID","Title","Status","Repository","Source","Target")
+        val columns = arrayOf(
+            "ID",
+            "Title",
+            "Status",
+            "Repository",
+            "Source",
+            "Target",
+            "Approvals"
+        )
 
         val model = object : DefaultTableModel(columns,0){
             override fun isCellEditable(r:Int,c:Int)=false
@@ -140,7 +149,8 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
                         pr.status,
                         pr.repo,
                         pr.sourceBranch,
-                        pr.targetBranch
+                        pr.targetBranch,
+                        pr.approvals
                     ))
                 }
 
@@ -149,6 +159,92 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
                 JOptionPane.showMessageDialog(
                     panel,
                     "Failed to load Pull Requests:\n${ex.message}",
+                    "Bitbucket Plugin Error",
+                    JOptionPane.ERROR_MESSAGE
+                )
+            }
+        }
+
+        table.addMouseListener(object:java.awt.event.MouseAdapter(){
+
+            override fun mousePressed(e:java.awt.event.MouseEvent){
+
+                if(e.clickCount==2 && table.selectedRow != -1){
+
+                    val row = table.convertRowIndexToModel(table.selectedRow)
+
+                    val prLink = prs[row].link
+
+                    if(prLink.isNotBlank()){
+                        Desktop.getDesktop().browse(URI(prLink))
+                    }
+                }
+            }
+        })
+
+        panel.add(refreshButton,BorderLayout.NORTH)
+        panel.add(scroll,BorderLayout.CENTER)
+
+        return panel
+    }
+    private fun createReviewPRPanel(): JPanel {
+
+        val panel = JPanel(BorderLayout())
+
+        val refreshButton = JButton("Load PRs To Review")
+
+        val columns = arrayOf(
+            "ID",
+            "Title",
+            "Status",
+            "Repository",
+            "Source",
+            "Target",
+            "Author",
+            "Approvals"
+        )
+
+        val model = object : DefaultTableModel(columns,0){
+            override fun isCellEditable(r:Int,c:Int)=false
+        }
+
+        val table = JBTable(model)
+        table.autoCreateRowSorter = true
+
+        val scroll = JBScrollPane(table)
+
+        val prs = mutableListOf<PullRequestData>()
+
+        refreshButton.addActionListener {
+
+            try {
+
+                val fetched = PullRequestService().getReviewPullRequests()
+
+                prs.clear()
+                prs.addAll(fetched)
+
+                model.rowCount = 0
+
+                for(pr in prs){
+
+                    model.addRow(arrayOf(
+                        pr.id,
+                        pr.title,
+                        pr.status,
+                        pr.repo,
+                        pr.sourceBranch,
+                        pr.targetBranch,
+                        pr.author,
+                        pr.approvals
+                    ))
+                }
+
+            } catch (ex: Exception) {
+
+                JOptionPane.showMessageDialog(
+                    panel,
+                    "Failed to load Review PRs:\n${ex.message}",
                     "Bitbucket Plugin Error",
                     JOptionPane.ERROR_MESSAGE
                 )

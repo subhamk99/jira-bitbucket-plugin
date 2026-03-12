@@ -7,5 +7,7 @@ data class PullRequestData(
     val sourceBranch: String,
     val targetBranch: String,
     val repo: String,
-    val link: String
+    val link: String,
+    val approvals: Int,
+    val author: String
 )

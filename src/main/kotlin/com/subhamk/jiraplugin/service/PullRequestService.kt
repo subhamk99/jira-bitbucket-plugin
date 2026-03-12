@@ -38,7 +38,6 @@ class PullRequestService {
     private fun parsePullRequests(response: String): List<PullRequestData> {
 
         val mapper = ObjectMapper()
-
         val root = mapper.readTree(response)
 
         val values = root.get("values") ?: return emptyList()
@@ -47,10 +46,8 @@ class PullRequestService {
 
         for (pr in values) {
 
-            val title = pr.get("title")?.asText() ?: ""
-
             val id = pr.get("id")?.asText() ?: ""
-
+            val title = pr.get("title")?.asText() ?: ""
             val state = pr.get("state")?.asText() ?: ""
 
             val sourceBranch =
@@ -69,6 +66,26 @@ class PullRequestService {
                     ?.get("href")
                     ?.asText() ?: ""
 
+            val author =
+                pr.get("author")
+                    ?.get("user")
+                    ?.get("displayName")
+                    ?.asText() ?: ""
+
+            // count approvals
+            var approvals = 0
+            val reviewers = pr.get("reviewers")
+
+            if (reviewers != null && reviewers.isArray) {
+
+                for (reviewer in reviewers) {
+
+                    if (reviewer.get("approved")?.asBoolean() == true) {
+                        approvals++
+                    }
+                }
+            }
+
             results.add(
                 PullRequestData(
                     id,
@@ -77,12 +94,33 @@ class PullRequestService {
                     sourceBranch,
                     targetBranch,
                     repo,
-                    link
+                    link,
+                    approvals,
+                    author
                 )
             )
         }
 
         return results
+    }
+
+    fun getReviewPullRequests(): List<PullRequestData> {
+
+        val settings = BitbucketSettingsState.getInstance()
+
+        disableSSLVerification()
+
+        val urlString =
+            "${settings.bitbucketUrl}/rest/api/1.0/dashboard/pull-requests?state=OPEN&role=REVIEWER"
+
+        val connection = URL(urlString).openConnection() as HttpURLConnection
+
+        connection.setRequestProperty("Authorization", "Bearer ${settings.patToken}")
+        connection.setRequestProperty("Accept", "application/json")
+
+        val response = connection.inputStream.bufferedReader().readText()
+
+        return parsePullRequests(response)
     }
 
     private fun disableSSLVerification() {
