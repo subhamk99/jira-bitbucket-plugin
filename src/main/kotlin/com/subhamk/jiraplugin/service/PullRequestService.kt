@@ -86,6 +86,12 @@ class PullRequestService {
                 }
             }
 
+            val mergeStatus =
+                pr.get("properties")
+                    ?.get("mergeResult")
+                    ?.get("outcome")
+                    ?.asText() ?: "UNKNOWN"
+
             results.add(
                 PullRequestData(
                     id,
@@ -96,7 +102,8 @@ class PullRequestService {
                     repo,
                     link,
                     approvals,
-                    author
+                    author,
+                    mergeStatus
                 )
             )
         }

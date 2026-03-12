@@ -9,5 +9,6 @@ data class PullRequestData(
     val repo: String,
     val link: String,
     val approvals: Int,
-    val author: String
+    val author: String,
+    val mergeStatus: String
 )

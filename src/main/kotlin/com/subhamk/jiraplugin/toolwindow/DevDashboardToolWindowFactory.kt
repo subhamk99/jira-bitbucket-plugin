@@ -115,7 +115,8 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
             "Repository",
             "Source",
             "Target",
-            "Approvals"
+            "Approvals",
+            "Merge"
         )
 
         val model = object : DefaultTableModel(columns,0){
@@ -150,7 +151,8 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
                         pr.repo,
                         pr.sourceBranch,
                         pr.targetBranch,
-                        pr.approvals
+                        pr.approvals,
+                        pr.mergeStatus
                     ))
                 }
 
@@ -201,7 +203,8 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
             "Source",
             "Target",
             "Author",
-            "Approvals"
+            "Approvals",
+            "Merge"
         )
 
         val model = object : DefaultTableModel(columns,0){
@@ -236,7 +239,8 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
                         pr.sourceBranch,
                         pr.targetBranch,
                         pr.author,
-                        pr.approvals
+                        pr.approvals,
+                        pr.mergeStatus
                     ))
                 }
 
