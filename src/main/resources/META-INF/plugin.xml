@@ -5,10 +5,10 @@
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Jira-Bitbucket-plugin</name>
+    <name>Jira-Bitbucket-Dev-Dashboard</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="subhamkhadanga97@gmai.com" url="https://www.subhamk.vercel.app">subhamk</vendor>
+    <vendor email="subhamkhadanga97@gmai.com" url="https://www.subhamk.vercel.app">Subham Khadanga</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
