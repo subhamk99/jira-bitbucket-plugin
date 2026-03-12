@@ -12,8 +12,11 @@ import java.awt.BorderLayout
 import java.awt.Desktop
 import java.net.URI
 import javax.swing.*
+import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.DefaultTableModel
 import com.subhamk.jiraplugin.data.PullRequestData
+import java.awt.Color
+import java.awt.Component
 
 class DevDashboardToolWindowFactory : ToolWindowFactory {
 
@@ -22,14 +25,16 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
         val tabs = JTabbedPane()
 
         tabs.addTab("Jira Tickets", createJiraPanel())
-        tabs.addTab("My Pull Requests", createPRPanel())
-        tabs.addTab("PRs To Review", createReviewPRPanel())
+        tabs.addTab("My Pull Requests", createPRPanel(false))
+        tabs.addTab("PRs To Review", createPRPanel(true))
 
         val content = ContentFactory.getInstance()
             .createContent(tabs, "", false)
 
         toolWindow.contentManager.addContent(content)
     }
+
+    // ---------------- JIRA PANEL ----------------
 
     private fun createJiraPanel(): JPanel {
 
@@ -102,22 +107,21 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
         return panel
     }
 
-    private fun createPRPanel(): JPanel {
+    // ---------------- PR PANELS ----------------
+
+    private fun createPRPanel(isReviewPanel: Boolean): JPanel {
 
         val panel = JPanel(BorderLayout())
 
-        val refreshButton = JButton("Load My PRs")
+        val refreshButton =
+            if(isReviewPanel) JButton("Load PRs To Review")
+            else JButton("Load My PRs")
 
-        val columns = arrayOf(
-            "ID",
-            "Title",
-            "Status",
-            "Repository",
-            "Source",
-            "Target",
-            "Approvals",
-            "Merge"
-        )
+        val columns =
+            if(isReviewPanel)
+                arrayOf("ID","Title","Status","Repository","Source","Target","Author","Approvals","Merge")
+            else
+                arrayOf("ID","Title","Status","Repository","Source","Target","Approvals","Merge")
 
         val model = object : DefaultTableModel(columns,0){
             override fun isCellEditable(r:Int,c:Int)=false
@@ -125,17 +129,21 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
 
         val table = JBTable(model)
         table.autoCreateRowSorter = true
+        table.setDefaultRenderer(Any::class.java, PRTableRenderer())
 
         val scroll = JBScrollPane(table)
 
-        // store PRs so mouse listener can access them
         val prs = mutableListOf<PullRequestData>()
 
         refreshButton.addActionListener {
 
             try {
 
-                val fetched = PullRequestService().getMyPullRequests()
+                val fetched =
+                    if(isReviewPanel)
+                        PullRequestService().getReviewPullRequests()
+                    else
+                        PullRequestService().getMyPullRequests()
 
                 prs.clear()
                 prs.addAll(fetched)
@@ -144,16 +152,33 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
 
                 for(pr in prs){
 
-                    model.addRow(arrayOf(
-                        pr.id,
-                        pr.title,
-                        pr.status,
-                        pr.repo,
-                        pr.sourceBranch,
-                        pr.targetBranch,
-                        pr.approvals,
-                        pr.mergeStatus
-                    ))
+                    if(isReviewPanel){
+
+                        model.addRow(arrayOf(
+                            pr.id,
+                            pr.title,
+                            pr.status,
+                            pr.repo,
+                            pr.sourceBranch,
+                            pr.targetBranch,
+                            pr.author,
+                            pr.approvals,
+                            pr.mergeStatus
+                        ))
+
+                    } else {
+
+                        model.addRow(arrayOf(
+                            pr.id,
+                            pr.title,
+                            pr.status,
+                            pr.repo,
+                            pr.sourceBranch,
+                            pr.targetBranch,
+                            pr.approvals,
+                            pr.mergeStatus
+                        ))
+                    }
                 }
 
             } catch (ex: Exception) {
@@ -189,92 +214,85 @@ class DevDashboardToolWindowFactory : ToolWindowFactory {
 
         return panel
     }
-    private fun createReviewPRPanel(): JPanel {
 
-        val panel = JPanel(BorderLayout())
+    // ---------------- CUSTOM TABLE RENDERER ----------------
 
-        val refreshButton = JButton("Load PRs To Review")
+    class PRTableRenderer : DefaultTableCellRenderer() {
 
-        val columns = arrayOf(
-            "ID",
-            "Title",
-            "Status",
-            "Repository",
-            "Source",
-            "Target",
-            "Author",
-            "Approvals",
-            "Merge"
-        )
+        override fun getTableCellRendererComponent(
+            table: JTable,
+            value: Any?,
+            isSelected: Boolean,
+            hasFocus: Boolean,
+            row: Int,
+            column: Int
+        ): Component {
 
-        val model = object : DefaultTableModel(columns,0){
-            override fun isCellEditable(r:Int,c:Int)=false
-        }
+            val c = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column
+            )
 
-        val table = JBTable(model)
-        table.autoCreateRowSorter = true
+            val columnName =
+                table.columnModel.getColumn(column).headerValue.toString()
 
-        val scroll = JBScrollPane(table)
+            val isDark = com.intellij.util.ui.UIUtil.isUnderDarcula()
 
-        val prs = mutableListOf<PullRequestData>()
+            if (!isSelected) {
+                foreground =
+                    if (isDark)
+                        Color(220,220,220)
+                    else
+                        Color.BLACK
+            }
 
-        refreshButton.addActionListener {
+            if (columnName == "Approvals") {
 
-            try {
+                val approvals = value?.toString()?.toIntOrNull() ?: 0
 
-                val fetched = PullRequestService().getReviewPullRequests()
+                text =
+                    if (approvals == 0)
+                        "⚠ 0"
+                    else
+                        "✔ $approvals"
 
-                prs.clear()
-                prs.addAll(fetched)
+                foreground =
+                    if (approvals == 0)
+                        if (isDark) Color(255,180,80) else Color(200,120,0)
+                    else
+                        if (isDark) Color(120,220,120) else Color(0,150,0)
 
-                model.rowCount = 0
+                horizontalAlignment = CENTER
+            }
 
-                for(pr in prs){
+            if (columnName == "Merge") {
 
-                    model.addRow(arrayOf(
-                        pr.id,
-                        pr.title,
-                        pr.status,
-                        pr.repo,
-                        pr.sourceBranch,
-                        pr.targetBranch,
-                        pr.author,
-                        pr.approvals,
-                        pr.mergeStatus
-                    ))
+                val merge = value?.toString()
+
+                text = when (merge) {
+
+                    "CLEAN" -> "MERGEABLE"
+
+                    "CONFLICTED" -> "CONFLICT"
+
+                    else -> "UNKNOWN"
                 }
 
-            } catch (ex: Exception) {
+                foreground = when (merge) {
 
-                JOptionPane.showMessageDialog(
-                    panel,
-                    "Failed to load Review PRs:\n${ex.message}",
-                    "Bitbucket Plugin Error",
-                    JOptionPane.ERROR_MESSAGE
-                )
-            }
-        }
+                    "CLEAN" ->
+                        if (isDark) Color(120,220,120) else Color(0,150,0)
 
-        table.addMouseListener(object:java.awt.event.MouseAdapter(){
+                    "CONFLICTED" ->
+                        if (isDark) Color(255,120,120) else Color(200,0,0)
 
-            override fun mousePressed(e:java.awt.event.MouseEvent){
-
-                if(e.clickCount==2 && table.selectedRow != -1){
-
-                    val row = table.convertRowIndexToModel(table.selectedRow)
-
-                    val prLink = prs[row].link
-
-                    if(prLink.isNotBlank()){
-                        Desktop.getDesktop().browse(URI(prLink))
-                    }
+                    else ->
+                        if (isDark) Color(255,180,80) else Color(200,120,0)
                 }
+
+                horizontalAlignment = CENTER
             }
-        })
 
-        panel.add(refreshButton,BorderLayout.NORTH)
-        panel.add(scroll,BorderLayout.CENTER)
-
-        return panel
+            return c
+        }
     }
 }
