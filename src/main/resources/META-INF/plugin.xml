@@ -14,9 +14,21 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
-  ]]></description>
+A lightweight developer dashboard inside IntelliJ.
+
+View your assigned <b>Jira tickets</b> and <b>Bitbucket pull requests</b> directly from the IDE.
+
+Features:
+<ul>
+<li>Assigned Jira tickets (excluding Done)</li>
+<li>Your open pull requests</li>
+<li>Pull requests awaiting your review</li>
+<li>Approval count and merge status indicators</li>
+<li>Double-click navigation to Jira or Bitbucket</li>
+</ul>
+
+Designed for developers who want quick visibility into their work without leaving the editor.
+]]></description>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -30,7 +42,7 @@
                 id="Dev Dashboard"
                 anchor="right"
                 factoryClass="com.subhamk.jiraplugin.toolwindow.DevDashboardToolWindowFactory"
-                />
+        />
 
         <applicationConfigurable
                 id="jira.settings"
