@@ -45,14 +45,9 @@ Designed for developers who want quick visibility into their work without leavin
         />
 
         <applicationConfigurable
-                id="jira.settings"
-                displayName="Jira Plugin Settings"
-                instance="com.subhamk.jiraplugin.settings.JiraConfigurable"/>
-
-        <applicationConfigurable
-                id="bitbucket.settings"
-                instance="com.subhamk.jiraplugin.settings.BitbucketConfigurable"
-                displayName="Bitbucket Plugin"/>
+                id="dev.dashboard.settings"
+                displayName="Dev Dashboard"
+                instance="com.subhamk.jiraplugin.settings.DevDashboardConfigurable"/>
 
     </extensions>
 </idea-plugin>
