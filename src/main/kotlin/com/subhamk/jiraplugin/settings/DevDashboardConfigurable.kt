@@ -3,6 +3,7 @@ package com.subhamk.jiraplugin.settings
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.HideableDecorator
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
@@ -67,32 +68,38 @@ class DevDashboardConfigurable : Configurable {
         form.add(createField("PAT Token", jiraTokenField))
 
         val testButton = JButton("Test Connection")
-
         testButton.putClientProperty("JButton.buttonType", "default")
         testButton.isFocusable = false
 
+        val statusLabel = JBLabel("")
+        statusLabel.border = JBUI.Borders.emptyLeft(8)
+
+        fun setStatus(text: String, color: Color) {
+            statusLabel.text = "● $text"
+            statusLabel.foreground = color
+        }
+
         testButton.addActionListener {
+
+            setStatus("Testing...", Color.GRAY)
 
             val success = ConnectionTestService.testJira(
                 jiraUrlField.text,
                 String(jiraTokenField.password)
             )
 
-            if (success)
-                Messages.showInfoMessage(
-                    "Jira connection successful!",
-                    "Connection Test"
-                )
-            else
-                Messages.showErrorDialog(
-                    "Unable to connect to Jira.",
-                    "Connection Test"
-                )
+            if (success) {
+                setStatus("Connected", Color(0, 160, 0))
+            } else {
+                setStatus("Failed", Color(200, 0, 0))
+            }
         }
 
         val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         buttonPanel.border = JBUI.Borders.emptyTop(6)
+
         buttonPanel.add(testButton)
+        buttonPanel.add(statusLabel)
 
         form.add(buttonPanel)
 
@@ -112,11 +119,20 @@ class DevDashboardConfigurable : Configurable {
         form.add(createField("PAT Token", bbTokenField))
 
         val testButton = JButton("Test Connection")
-
         testButton.putClientProperty("JButton.buttonType", "default")
         testButton.isFocusable = false
 
+        val statusLabel = JBLabel("")
+        statusLabel.border = JBUI.Borders.emptyLeft(8)
+
+        fun setStatus(text: String, color: Color) {
+            statusLabel.text = "● $text"
+            statusLabel.foreground = color
+        }
+
         testButton.addActionListener {
+
+            setStatus("Testing...", Color.GRAY)
 
             val success = ConnectionTestService.testBitbucket(
                 bbUrlField.text,
@@ -124,21 +140,18 @@ class DevDashboardConfigurable : Configurable {
                 String(bbTokenField.password)
             )
 
-            if (success)
-                Messages.showInfoMessage(
-                    "Bitbucket connection successful!",
-                    "Connection Test"
-                )
-            else
-                Messages.showErrorDialog(
-                    "Unable to connect to Bitbucket.",
-                    "Connection Test"
-                )
+            if (success) {
+                setStatus("Connected", Color(0, 160, 0))
+            } else {
+                setStatus("Failed", Color(200, 0, 0))
+            }
         }
 
         val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
         buttonPanel.border = JBUI.Borders.emptyTop(6)
+
         buttonPanel.add(testButton)
+        buttonPanel.add(statusLabel)
 
         form.add(buttonPanel)
 
