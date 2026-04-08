@@ -2,14 +2,13 @@
      xmlns="http://www.w3.org/2000/svg">
 
     <rect x="4" y="4" width="32" height="32" rx="8"
-          fill="#4C8BF5"/>
+          fill="#2B2D30"/>
 
-    <rect x="12" y="20" width="3" height="8" fill="white"/>
-    <rect x="18" y="16" width="3" height="12" fill="white"/>
-    <rect x="24" y="12" width="3" height="16" fill="white"/>
+    <rect x="12" y="20" width="3" height="8" fill="#A9B7C6"/>
+    <rect x="18" y="16" width="3" height="12" fill="#A9B7C6"/>
+    <rect x="24" y="12" width="3" height="16" fill="#A9B7C6"/>
 
-    <!-- Small check indicator -->
-    <circle cx="28" cy="12" r="4" fill="#34C759"/>
+    <circle cx="28" cy="12" r="4" fill="#57D67A"/>
     <path d="M26.5 12 L27.8 13.3 L30 10.8"
           stroke="white"
           stroke-width="1.5"
